@@ -19,6 +19,7 @@ main:
 
     # load the address of the function in question into $a1 (check out la)
     ### YOUR CODE HERE ###
+    la a1 square
 
     # issue the call to map
     jal ra, map
@@ -33,7 +34,10 @@ main:
 map:
     # Prologue: Make space on the stack and back-up registers
     ### YOUR CODE HERE ###
-
+    addi sp, sp, -8
+    sw ra, 4(sp)
+    sw s0, 0(sp)
+do:
     beq a0, x0, done    # If we were given a null pointer (address 0), we're done.
 
     add s0, a0, x0  # Save address of this node in s0
@@ -45,30 +49,39 @@ map:
     # load the value of the current node into a0
     # THINK: why a0?
     ### YOUR CODE HERE ###
+    lw a0, 0(s0)
 
     # Call the function in question on that value. DO NOT use a label (be prepared to answer why).
     # What function? Recall the parameters of "map"
     ### YOUR CODE HERE ###
+    jalr s1 # Jump to squre function, save address of next instruction (return address) to ra.
     
     # store the returned value back into the node
     # Where can you assume the returned value is?
     ### YOUR CODE HERE ###
+    sw a0, 0(s0)
 
     # Load the address of the next node into a0
     # The Address of the next node is an attribute of the current node.
     # Think about how structs are organized in memory.
     ### YOUR CODE HERE ###
+    lw a0, 4(s0)
 
     # Put the address of the function back into a1 to prepare for the recursion
     # THINK: why a1? What about a0?
     ### YOUR CODE HERE ###
+	add a1, s1, x0
 
     # recurse
     ### YOUR CODE HERE ###
+    j do  
 
 done:
     # Epilogue: Restore register values and free space from the stack
     ### YOUR CODE HERE ###
+    lw ra, 4(sp)
+    lw s0, 0(sp)
+    addi sp, sp, 8
     
     jr ra # Return to caller
 
@@ -85,16 +98,16 @@ create_default_list:
     li  s1, 0       # number of nodes handled
 loop:   #do...
     li  a0, 8
-    jal ra, malloc      # get memory for the next node
+    jal ra, malloc  # get memory for the next node
     sw  s1, 0(a0)   # node->value = i
     sw  s0, 4(a0)   # node->next = last
     add s0, a0, x0  # last = node
-    addi    s1, s1, 1   # i++
+    addi s1, s1, 1  # i++
     addi t0, x0, 10
     bne s1, t0, loop    # ... while i!= 10
     lw  ra, 0(sp)
     lw  s0, 4(sp)
-    lw  s1, 4(sp)
+    lw  s1, 8(sp)
     addi sp, sp, 12
     jr ra
 
@@ -120,6 +133,6 @@ print_newline:
 
 malloc:
     addi    a1, a0, 0
-    addi    a0, x0 9
+    addi    a0, x0, 9
     ecall
     jr  ra
